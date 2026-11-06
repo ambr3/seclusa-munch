@@ -67,6 +67,7 @@ import {
     FEET
 } from '../js/sprites.js';
 import { Renderer, MAP_WIDTH } from '../js/renderer.js';
+import { Scores } from '../js/storage.js';
 import { Game } from '../js/game.js';
 import { CAP_COLOR, EYE_COLOR } from '../js/config.js';
 
@@ -554,6 +555,32 @@ describe('the messages on screen', () => {
             expect(item.align).toBe('center');
             expect(item.y).toBe(20 * 8);
         }
+    });
+
+    it('resizes the canvas it was given, not a free variable', () => {
+        const canvas = document.createElement('canvas');
+        const renderer = new Renderer(canvas);
+        renderer.resize();
+        expect(canvas.width).toBeGreaterThan(0);
+        expect(canvas.height).toBeGreaterThan(0);
+        expect(canvas.style.inset.length).toBeGreaterThan(0);
+        expect(canvas.classList.contains('canvas-ready')).toBe(true);
+    });
+});
+
+describe('the saved score', () => {
+    it('clears the record and the names this game used to use', () => {
+        localStorage.setItem('ssc.munch_high_score', '100');
+        localStorage.setItem('ssc.pacman_high_scores', '50');
+        localStorage.setItem('highScores', '40');
+        const scores = new Scores();
+        expect(scores.get()).toBe(100);
+        scores.clear();
+        expect(scores.get()).toBe(0);
+        expect(localStorage.getItem('ssc.munch_high_score')).toBe(null);
+        expect(localStorage.getItem('ssc.pacman_high_scores')).toBe(null);
+        expect(localStorage.getItem('highScores')).toBe(null);
+        expect(new Scores().get()).toBe(0);
     });
 });
 

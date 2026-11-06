@@ -25,8 +25,7 @@ could silently tighten `connect-src` on the test page or a service worker).
 What it *does* send, for local framing and hardening that GitHub Pages also leaves
 to the browser defaults:
 
-  - launcher paths: `X-Frame-Options: DENY`
-  - `/games/<id>/…`: `X-Frame-Options: SAMEORIGIN` so the launcher can iframe them
+  - `X-Frame-Options: SAMEORIGIN` so a same-origin test page can frame the game
   - `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`, `X-Robots-Tag`
   - `Cross-Origin-Opener-Policy: same-origin`, `Cross-Origin-Resource-Policy: same-origin`
   - `Cache-Control: no-store` (dev only — defeats the HTTP cache)
@@ -40,7 +39,6 @@ import socketserver
 import socket
 import sys
 import os
-import re
 import urllib.parse
 
 PORT = int(sys.argv[1]) if len(sys.argv) > 1 else 8080
@@ -58,18 +56,6 @@ PERMISSIONS_POLICY = (
     "gyroscope=(), magnetometer=(), idle-detection=(), screen-wake-lock=(), "
     "browsing-topics=(), interest-cohort=()"
 )
-
-GAMES = ("blockfall", "klondike", "pacman", "pyramid", "word-puzzle")
-
-
-def game_for_path(path):
-    """Game id if `path` is under /games/<id>/, else None."""
-    match = re.match(r"^/games/([^/]+)(/|$)", path)
-    if not match:
-        return None
-    game = match.group(1)
-    return game if game in GAMES else None
-
 
 def for_path(path):
     """Hardening and framing headers for a request path. No CSP — see module docstring."""

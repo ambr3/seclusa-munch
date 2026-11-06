@@ -17,8 +17,8 @@ const KEY = "ssc.munch_high_score";
  * Keys this game used to write scores under, oldest first.
  *
  * They are read once and folded into the new one so nobody loses a record by the game
- * being renamed. Nothing writes them again, and nothing deletes them either: they belong
- * to the launcher's "clear local data", not to us.
+ * being renamed. Nothing writes them again. Clear removes them too, or the next visit
+ * would treat the old copy as the record.
  */
 const LEGACY_KEYS = ["ssc.pacman_high_scores", "highScores"];
 
@@ -89,6 +89,17 @@ export class Scores {
             localStorage.setItem(KEY, String(this.best));
         } catch (err) {
             /* the score stays in memory for this session */
+        }
+    }
+
+    /** Forgets the record, including the names this game used before it was renamed. */
+    clear() {
+        this.best = 0;
+        try {
+            localStorage.removeItem(KEY);
+            for (const key of LEGACY_KEYS) localStorage.removeItem(key);
+        } catch (err) {
+            /* already gone from this session */
         }
     }
 }

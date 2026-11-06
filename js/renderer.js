@@ -67,9 +67,12 @@ export class Renderer {
 
     /** The largest whole look that fits the window, re-computed on every resize. */
     resize() {
-        const available = Math.min(window.innerWidth - 8, window.innerHeight - 8);
+        const foot = document.querySelector(".game-foot");
+        const footH = foot ? foot.offsetHeight : 0;
+        const available = Math.max(1, Math.min(window.innerWidth - 8, window.innerHeight - footH - 8));
         this.scale = Math.max(0.5, available / SCREEN_HEIGHT);
         if (SCREEN_WIDTH * this.scale > available) this.scale = available / SCREEN_WIDTH;
+        this.canvas.style.inset = `0 0 ${footH}px 0`;
 
         this.canvas.width = Math.round(SCREEN_WIDTH * this.scale);
         this.canvas.height = Math.round(SCREEN_HEIGHT * this.scale);

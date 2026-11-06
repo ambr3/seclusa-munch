@@ -23,6 +23,13 @@ if [ ! -f "$HARNESS" ]; then
   exit 1
 fi
 
+echo "-- syntax --"
+"$NODE" --check sw.js
+"$NODE" --check stand.js
+for f in js/*.js; do
+  "$NODE" --check "$f"
+done
+
 PORT=8123
 python3 scripts/serve.py "$PORT" >/dev/null 2>&1 &
 SERVER_PID=$!

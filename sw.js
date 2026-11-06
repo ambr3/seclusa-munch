@@ -59,37 +59,53 @@ const SHELL = [
 
 let resolved = null;
 
-function resolveCache() {{
+function isShellRequest(url) {
+    if (url.origin !== self.location.origin || url.search) return false;
+    const scopePath = new URL("./", self.location).pathname;
+    if (!url.pathname.startsWith(scopePath)) return false;
+    let rel = url.pathname.slice(scopePath.length);
+    if (rel.endsWith("/")) rel = rel.slice(0, -1);
+    if (rel === "") rel = "index.html";
+    return SHELL.some((item) => item.replace(/^\.\//, "") === rel);
+}
+
+function resolveCache() {
     if (resolved) return Promise.resolve(resolved);
-    return fetch(new URL("./manifest.json", self.location), {{ cache: "no-store" }})
+    return fetch(new URL("./manifest.json", self.location), { cache: "no-store" })
         .then((res) => res.json())
-        .then((data) => {{
+        .then((data) => {
             resolved = PREFIX + "v" + data.version;
             return resolved;
-        }})
-        .catch(() => caches.keys().then((keys) => {{
+        })
+        .catch(() => caches.keys().then((keys) => {
             resolved = keys.find((key) => key.indexOf(PREFIX) === 0) || (PREFIX + "v0");
             return resolved;
-        }}));
-}}
+        }));
+}
 
-self.addEventListener("install", (event) => {{
+self.addEventListener("install", (event) => {
     event.waitUntil(resolveCache().then((name) => caches.open(name).then((cache) => cache.addAll(SHELL))));
-}});
+});
 
-self.addEventListener("activate", (event) => {{
+self.addEventListener("activate", (event) => {
     event.waitUntil(resolveCache().then((name) => caches.keys().then((keys) => Promise.all(
         keys.filter((key) => key.indexOf(PREFIX) === 0 && key !== name).map((key) => caches.delete(key))
-    ))));
-}});
+    )).then(() => caches.open(name).then((cache) => cache.keys().then((reqs) => Promise.all(
+        reqs.filter((req) => !isShellRequest(new URL(req.url))).map((req) => cache.delete(req))
+    ))))));
+});
 
-self.addEventListener("fetch", (event) => {{
+self.addEventListener("fetch", (event) => {
     const req = event.request;
     if (req.method !== "GET") return;
     const url = new URL(req.url);
     if (url.origin !== self.location.origin) return;
-    event.respondWith(resolveCache().then((name) => caches.open(name).then((cache) => fetch(req).then((res) => {{
-        if (res && res.ok) cache.put(req, res.clone());
+    event.respondWith(resolveCache().then((name) => caches.open(name).then((cache) => fetch(req).then((res) => {
+        if (res && res.ok && isShellRequest(url)) cache.put(req, res.clone());
         return res;
-    }}).catch(() => cache.match(req).then((hit) => hit || cache.match("./offline.html"))))));
-}});
+    }).catch(() => cache.match(req).then((hit) => {
+        if (hit) return hit;
+        if (req.mode === "navigate") return cache.match("./offline.html");
+        return Response.error();
+    })))));
+});

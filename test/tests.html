@@ -4,17 +4,12 @@
     <meta charset="UTF-8">
     <!--
         Same posture as every other document in the app: no framing, no objects, no
-        third-party anything. Three allowances, all narrow:
+        third-party anything.
           - `style-src` needs 'unsafe-inline' for this page's own <style> block.
-          - `media-src 'self'` because the suite that exercises GameManager builds a
-            real `Sounds` and preloads the actual .ogg and .wav files.
-          - `connect-src 'self'` — the one departure from the shipped pages, which use
-            'none'. The shellStatic suite asserts things about the app's own source files
-            (does every document carry a CSP, does every new-tab link carry
-            rel=noopener), and the only way to read a file is to fetch it. That is
-            same-origin and reaches this app's own documents; it cannot reach anything
-            else. The alternative was to assert those properties from a copy of the
-            source, which would test the copy.
+          - `media-src 'self'` covers the game's own mp3 clips if a test builds audio.
+          - `connect-src 'self'` is the one departure from the shipped pages, which use
+            'none'. The harness loads this page from the same origin. It cannot reach
+            anything else.
     -->
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; font-src 'self'; media-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
     <meta name="robots" content="noindex, nofollow">

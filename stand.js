@@ -12,14 +12,16 @@
 
     var copy = window.STAND_COPY || {};
     var KEY_SOUND = "ssc.pref_key_sound_enabled";
-    var KEY_COLOR = "ssc.pref_key_theme_color";
     var KEY_NIGHT = "ssc.pref_key_night_mode";
+    var KEY_COLOR = "ssc.pref_key_theme_color";
     var NIGHTS = ["system", "light", "dark"];
     var PALETTES = [
         "orange", "green", "blue", "purple",
         "rose", "teal", "amber", "slate",
         "navy", "indigo", "lime", "crimson"
     ];
+    var settingsButton = null;
+    var cacheState = "pending";
 
     function read(key, fallback) {
         try {
@@ -69,10 +71,12 @@
     var scrim = null;
 
     function close() {
+        var returnFocus = sheet && sheet.contains(document.activeElement);
         if (sheet) sheet.remove();
         if (scrim) scrim.remove();
         sheet = null;
         scrim = null;
+        if (returnFocus && settingsButton) settingsButton.focus();
     }
 
     function open() {
@@ -84,26 +88,23 @@
         scrim.addEventListener("click", close);
         sheet = el("div", "stand-sheet");
         sheet.setAttribute("role", "dialog");
-        sheet.setAttribute("aria-label", copy.name || "Game menu");
+        sheet.setAttribute("aria-modal", "true");
+        sheet.setAttribute("aria-label", "App settings");
 
         var closeBtn = el("button", "stand-close", "Close");
         closeBtn.type = "button";
         closeBtn.addEventListener("click", close);
         sheet.appendChild(closeBtn);
-        sheet.appendChild(el("h2", null, copy.name || "Game"));
 
-        if (copy.sound !== false) {
-            sheet.appendChild(el("h2", null, "Sound"));
-            var soundRow = el("div", "stand-row");
-            var on = read(KEY_SOUND, "true") !== "false";
-            soundRow.appendChild(choice(on ? "Sound on" : "Sound off", on, function () {
-                on = !on;
-                write(KEY_SOUND, on ? "true" : "false");
-                close();
-                open();
-            }));
-            sheet.appendChild(soundRow);
-        }
+        sheet.appendChild(el("h2", null, "Sounds"));
+        var soundOn = read(KEY_SOUND, "true") !== "false";
+        var soundRow = el("div", "stand-row");
+        soundRow.appendChild(choice(soundOn ? "Sounds on" : "Sounds off", soundOn, function () {
+            write(KEY_SOUND, soundOn ? "false" : "true");
+            close();
+            open();
+        }));
+        sheet.appendChild(soundRow);
 
         sheet.appendChild(el("h2", null, "Theme"));
         var night = read(KEY_NIGHT, "system");
@@ -118,6 +119,7 @@
         });
         sheet.appendChild(nightRow);
 
+        sheet.appendChild(el("h2", null, "Color"));
         var palette = read(KEY_COLOR, "navy");
         var paletteRow = el("div", "stand-row");
         PALETTES.forEach(function (name) {
@@ -130,6 +132,28 @@
         });
         sheet.appendChild(paletteRow);
 
+        sheet.appendChild(el("h2", null, "Saved score"));
+        var scoreRow = el("div", "stand-row");
+        var clearBtn = choice("Clear saved score", false, function () {
+            if (clearBtn.getAttribute("aria-pressed") !== "true") {
+                clearBtn.textContent = "Confirm clear";
+                clearBtn.setAttribute("aria-pressed", "true");
+                return;
+            }
+            var game = window.munchGame;
+            if (game && game.scores && typeof game.scores.clear === "function") {
+                game.scores.clear();
+                game.highScore = 0;
+            }
+            close();
+        });
+        scoreRow.appendChild(clearBtn);
+        sheet.appendChild(scoreRow);
+
+        if (cacheState === "failed") {
+            sheet.appendChild(el("p", null, "Offline copy unavailable. The game still runs while this page is open."));
+        }
+
         sheet.appendChild(el("h2", null, "How to play"));
         (copy.rules || []).forEach(function (line) {
             sheet.appendChild(el("p", null, line));
@@ -139,17 +163,11 @@
         (copy.about || []).forEach(function (line) {
             sheet.appendChild(el("p", null, line));
         });
-        if (copy.source) {
-            var link = el("a", "stand-link", "Source");
-            link.href = copy.source;
-            link.target = "_blank";
-            link.rel = "noopener noreferrer";
-            sheet.appendChild(link);
-        }
 
         sheet.appendChild(el("h2", null, "Fullscreen"));
         var full = el("div", "stand-row");
-        full.appendChild(choice("Toggle fullscreen", false, function () {
+        var fullOn = !!(document.fullscreenElement || document.webkitFullscreenElement);
+        full.appendChild(choice(fullOn ? "Fullscreen on" : "Fullscreen off", fullOn, function () {
             var node = document.documentElement;
             var active = document.fullscreenElement || document.webkitFullscreenElement;
             var done = active
@@ -164,12 +182,14 @@
 
         document.body.appendChild(scrim);
         document.body.appendChild(sheet);
+        closeBtn.focus();
     }
 
     function boot() {
-        var button = el("button", "stand-more", "More");
+        var button = el("button", "stand-more", "App settings");
+        settingsButton = button;
         button.type = "button";
-        button.setAttribute("aria-label", "Theme, sound, how to play and about");
+        button.setAttribute("aria-label", "App settings");
         if (copy.corner) button.setAttribute("data-corner", copy.corner);
         button.addEventListener("click", open);
         document.body.appendChild(button);
@@ -177,7 +197,11 @@
             if (event.key === "Escape") close();
         });
         if ("serviceWorker" in navigator) {
-            navigator.serviceWorker.register("./sw.js").catch(function () {});
+            navigator.serviceWorker.register("./sw.js").then(function () {
+                cacheState = "ready";
+            }, function () {
+                cacheState = "failed";
+            });
         }
     }
 
