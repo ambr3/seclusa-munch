@@ -1,0 +1,757 @@
+/*
+ * Seclusa Games shell theme for Seclusa Munch.
+ *
+ * Tokens and chrome are ported from the Solitaire PWA so both games share one look:
+ *   Solitaire/pwa/src/ui/theme.css   (Material 3 theme transcribed from the Android app)
+ *   Solitaire/pwa/src/ui/theme.ts    (light/dark + palette role values)
+ *   Solitaire/pwa/src/ui/AboutScreen.ts, Dialogs.ts (app bar, dialogs, pills, cards)
+ *
+ * The palette and night mode are applied through the `data-palette` / `data-theme`
+ * attributes on <html> instead of inline styles, because this game has no bundler for
+ * its shell — theme.js only sets those two attributes and persists the choice.
+ */
+
+:root {
+  /* Neutral color roles (light) — Solitaire values/colors.xml */
+  --md-sys-color-surface: #fcf8f7;
+  --md-sys-color-on-surface: #1c1b1b;
+  --md-sys-color-surface-container-lowest: #ffffff;
+  --md-sys-color-surface-container-low: #f6f1f0;
+  --md-sys-color-surface-container: #f0ebea;
+  --md-sys-color-surface-container-high: #ebe4e4;
+  --md-sys-color-surface-container-highest: #e5dedd;
+  --md-sys-color-surface-bright: #fcf8f6;
+  --md-sys-color-surface-dim: #dcd5d4;
+  --md-sys-color-surface-variant: #e8e0de;
+  --md-sys-color-on-surface-variant: #4a4444;
+  --md-sys-color-outline: #7b7474;
+  --md-sys-color-outline-variant: #cbc3c2;
+  --md-sys-color-error: #b3261e;
+  --md-sys-color-on-error: #ffffff;
+  --md-sys-color-error-container: #f9dedc;
+  --md-sys-color-on-error-container: #410e0b;
+  --md-sys-color-inverse-surface: #32302f;
+  --md-sys-color-inverse-on-surface: #f5eeed;
+  --md-sys-color-scrim: #000000;
+
+  /*
+   * Chrome colors — menu bar, chips, header buttons.
+   *
+   * These were 6-10% white over a blurred backdrop, which reads soft and washed out.
+   * The surfaces are now opaque enough to be legible on their own, with the border
+   * doing the work of separating them from the game rather than a frosted-glass blur.
+   */
+  --menu-bar-icon: #455a64;
+  --menu-bar-label: #455a64;
+  --menu-bar-surface: #f2f3f5;
+  --menu-bar-stroke: #1c1b1b;
+  --score-chip-surface: #ffffff;
+  --score-chip-stroke: #1c1b1b;
+  --settings-background: #f2f3f5;
+  --preference-card: #ffffff;
+
+  /*
+   * Shapes and elevations — drawable/*.xml, dimens.xml.
+   *
+   * Radius dropped from 16px to 4px: the 16dp pill was Android's Material shape, and
+   * it is the single thing making this read as soft. Borders are full 2px and the
+   * shadow is a hard 4px offset with no blur — a blurred drop shadow is the other half
+   * of the softness, and a solid offset reads as deliberate and sharp instead.
+   */
+  --menu-bar-radius: 4px;
+  --menu-bar-border: 2px solid var(--menu-bar-stroke);
+  --score-chip-radius: 4px;
+  --score-chip-border: 2px solid var(--score-chip-stroke);
+  --score-chip-shadow: 4px 4px 0 rgb(0 0 0 / 45%);
+  --bar-margin: 16px;
+  --layout-padding: 15px;
+
+  /* Type scale — styles.xml TextAppearance.App.* */
+  --type-title-large: 700 22px/1.25 var(--font-sans);
+  --type-title-medium: 700 18px/1.3 var(--font-sans);
+  --type-body-large: 500 16px/1.5 var(--font-sans);
+  --type-body-medium: 500 15px/1.45 var(--font-sans);
+  --type-label-large: 700 15px/1.3 var(--font-sans);
+  --type-menu-label: 500 12.5px/1.35 var(--font-sans);
+
+  color-scheme: light dark;
+}
+
+/* Dark neutrals — Solitaire values-night/colors.xml */
+[data-theme='dark'] {
+  --md-sys-color-surface: #121212;
+  --md-sys-color-on-surface: #e8e6e3;
+  --md-sys-color-surface-container-lowest: #0c0c0c;
+  --md-sys-color-surface-container-low: #1a1a1a;
+  --md-sys-color-surface-container: #212121;
+  --md-sys-color-surface-container-high: #2c2c2c;
+  --md-sys-color-surface-container-highest: #383838;
+  --md-sys-color-surface-bright: #3f3f3f;
+  --md-sys-color-surface-dim: #121212;
+  --md-sys-color-surface-variant: #494643;
+  --md-sys-color-on-surface-variant: #cbc5c0;
+  --md-sys-color-outline: #958f8a;
+  --md-sys-color-outline-variant: #494643;
+  --md-sys-color-error: #ffb4ab;
+  --md-sys-color-on-error: #690005;
+  --md-sys-color-error-container: #93000a;
+  --md-sys-color-on-error-container: #ffdad6;
+  --md-sys-color-inverse-surface: #e8e6e3;
+  --md-sys-color-inverse-on-surface: #2f2f2f;
+  --menu-bar-icon: #f2f4f5;
+  --menu-bar-label: #f2f4f5;
+  /*
+   * Dark chrome was 80% of a dark red laid over a blur. Opaque near-black with a
+   * bright 2px stroke gives the same separation with far more edge contrast, which is
+   * what makes the shape read as sharp on a dark maze.
+   */
+  --menu-bar-surface: #121212;
+  --menu-bar-stroke: #f2f4f5;
+  --score-chip-surface: #121212;
+  --score-chip-stroke: #f2f4f5;
+  --settings-background: #0e0e0e;
+  --preference-card: #2a2a2a;
+}
+
+/*
+ * Palette roles. Only the roles this shell actually paints are ported — the secondary
+ * and tertiary containers of the Android theme are unused outside the card table.
+ */
+[data-palette='orange'] {
+  --md-sys-color-primary: #8b5000;
+  --md-sys-color-on-primary: #ffffff;
+  --md-sys-color-primary-container: #ffdcc2;
+  --md-sys-color-on-primary-container: #2c1500;
+  --theme-game-select-background: #bf360c;
+  --theme-game-select-background-end: #7e2202;
+  --theme-color-drawer-selected: #ffe0b2;
+}
+
+[data-palette='green'] {
+  --md-sys-color-primary: #1b6b37;
+  --md-sys-color-on-primary: #ffffff;
+  --md-sys-color-primary-container: #a8f2ad;
+  --md-sys-color-on-primary-container: #002106;
+  --theme-game-select-background: #14532d;
+  --theme-game-select-background-end: #0b3b1e;
+  --theme-color-drawer-selected: #c8e6c9;
+}
+
+[data-palette='blue'] {
+  --md-sys-color-primary: #1565c0;
+  --md-sys-color-on-primary: #ffffff;
+  --md-sys-color-primary-container: #d6e3ff;
+  --md-sys-color-on-primary-container: #001b3f;
+  --theme-game-select-background: #0d47a1;
+  --theme-game-select-background-end: #082f66;
+  --theme-color-drawer-selected: #bbdefb;
+}
+
+[data-palette='purple'] {
+  --md-sys-color-primary: #6a1b9a;
+  --md-sys-color-on-primary: #ffffff;
+  --md-sys-color-primary-container: #f3daff;
+  --md-sys-color-on-primary-container: #260046;
+  --theme-game-select-background: #3f0f5e;
+  --theme-game-select-background-end: #27093b;
+  --theme-color-drawer-selected: #e1bee7;
+}
+
+/*
+ * The eight palettes added after the original four, navy among them. Kept in step with the
+ * same-named blocks in the shell's theme.css by hand — this game carries its own palette
+ * sheet rather than inheriting one, so a palette added to the launcher is invisible here
+ * until it is added here too. A palette with no block here falls through to the previous
+ * palette's values, which is why the list is not derived from the launcher's.
+ */
+[data-palette='rose'] {
+  --md-sys-color-primary: #a8274e;
+  --md-sys-color-on-primary: #ffffff;
+  --md-sys-color-primary-container: #ffd9e1;
+  --md-sys-color-on-primary-container: #3f0018;
+  --theme-game-select-background: #7b1f3a;
+  --theme-game-select-background-end: #4f1124;
+  --theme-color-drawer-selected: #f9d9e0;
+}
+
+[data-palette='teal'] {
+  --md-sys-color-primary: #006a60;
+  --md-sys-color-on-primary: #ffffff;
+  --md-sys-color-primary-container: #9df2e7;
+  --md-sys-color-on-primary-container: #00201c;
+  --theme-game-select-background: #0b4f49;
+  --theme-game-select-background-end: #06332f;
+  --theme-color-drawer-selected: #b2dfd7;
+}
+
+[data-palette='amber'] {
+  --md-sys-color-primary: #8a5a00;
+  --md-sys-color-on-primary: #ffffff;
+  --md-sys-color-primary-container: #ffddb0;
+  --md-sys-color-on-primary-container: #2c1800;
+  --theme-game-select-background: #6b4a12;
+  --theme-game-select-background-end: #44300a;
+  --theme-color-drawer-selected: #ffe1b8;
+}
+
+[data-palette='slate'] {
+  --md-sys-color-primary: #4f5b66;
+  --md-sys-color-on-primary: #ffffff;
+  --md-sys-color-primary-container: #d6e2ee;
+  --md-sys-color-on-primary-container: #0b1923;
+  --theme-game-select-background: #37424c;
+  --theme-game-select-background-end: #232b33;
+  --theme-color-drawer-selected: #d3dde6;
+}
+
+[data-palette='navy'] {
+  --md-sys-color-primary: #1b3b6f;
+  --md-sys-color-on-primary: #ffffff;
+  --md-sys-color-primary-container: #d4e3ff;
+  --md-sys-color-on-primary-container: #001c3b;
+  --theme-game-select-background: #0d2340;
+  --theme-game-select-background-end: #081629;
+  --theme-color-drawer-selected: #cfe0fb;
+}
+
+[data-palette='indigo'] {
+  --md-sys-color-primary: #4b52c4;
+  --md-sys-color-on-primary: #ffffff;
+  --md-sys-color-primary-container: #e0e0ff;
+  --md-sys-color-on-primary-container: #000f5c;
+  --theme-game-select-background: #2c3080;
+  --theme-game-select-background-end: #1b1e56;
+  --theme-color-drawer-selected: #dcdcff;
+}
+
+[data-palette='lime'] {
+  --md-sys-color-primary: #4a6700;
+  --md-sys-color-on-primary: #ffffff;
+  --md-sys-color-primary-container: #c9f27f;
+  --md-sys-color-on-primary-container: #142100;
+  --theme-game-select-background: #2f5000;
+  --theme-game-select-background-end: #1d3300;
+  --theme-color-drawer-selected: #cbf19b;
+}
+
+[data-palette='crimson'] {
+  --md-sys-color-primary: #8c1d18;
+  --md-sys-color-on-primary: #ffffff;
+  --md-sys-color-primary-container: #ffdad6;
+  --md-sys-color-on-primary-container: #410002;
+  --theme-game-select-background: #6b1611;
+  --theme-game-select-background-end: #450d0a;
+  --theme-color-drawer-selected: #f9d9d6;
+}
+
+/* Dark primaries — Solitaire DARK_PALETTES. The playfield gradient stays the same. */
+[data-theme='dark'][data-palette='orange'] {
+  --md-sys-color-primary: #e8a872;
+  --md-sys-color-on-primary: #412300;
+  --md-sys-color-primary-container: #5c3a1a;
+  --md-sys-color-on-primary-container: #ffdcc2;
+  --theme-color-drawer-selected: #5c3a1a;
+}
+
+[data-theme='dark'][data-palette='green'] {
+  --md-sys-color-primary: #7fcb8c;
+  --md-sys-color-on-primary: #003918;
+  --md-sys-color-primary-container: #1e4a2c;
+  --md-sys-color-on-primary-container: #b8f0bd;
+  --theme-color-drawer-selected: #1e4a2c;
+}
+
+[data-theme='dark'][data-palette='blue'] {
+  --md-sys-color-primary: #9ebeff;
+  --md-sys-color-on-primary: #002e5c;
+  --md-sys-color-primary-container: #1a3f6e;
+  --md-sys-color-on-primary-container: #d6e3ff;
+  --theme-color-drawer-selected: #1a3f6e;
+}
+
+[data-theme='dark'][data-palette='purple'] {
+  --md-sys-color-primary: #d5a8f0;
+  --md-sys-color-on-primary: #3a005c;
+  --md-sys-color-primary-container: #4a2a66;
+  --md-sys-color-on-primary-container: #f0d6ff;
+  --theme-color-drawer-selected: #4a2a66;
+}
+
+/* Dark halves of the eight later palettes. Same drift hazard as the light blocks above. */
+[data-theme='dark'][data-palette='rose'] {
+  --md-sys-color-primary: #ffb0c1;
+  --md-sys-color-on-primary: #5e1130;
+  --md-sys-color-primary-container: #86203f;
+  --md-sys-color-on-primary-container: #ffd9e1;
+  --theme-color-drawer-selected: #86203f;
+}
+
+[data-theme='dark'][data-palette='teal'] {
+  --md-sys-color-primary: #81d5cb;
+  --md-sys-color-on-primary: #003731;
+  --md-sys-color-primary-container: #005048;
+  --md-sys-color-on-primary-container: #9df2e7;
+  --theme-color-drawer-selected: #005048;
+}
+
+[data-theme='dark'][data-palette='amber'] {
+  --md-sys-color-primary: #f7bd6a;
+  --md-sys-color-on-primary: #492900;
+  --md-sys-color-primary-container: #693c00;
+  --md-sys-color-on-primary-container: #ffddb0;
+  --theme-color-drawer-selected: #693c00;
+}
+
+[data-theme='dark'][data-palette='slate'] {
+  --md-sys-color-primary: #bac7d4;
+  --md-sys-color-on-primary: #243039;
+  --md-sys-color-primary-container: #374754;
+  --md-sys-color-on-primary-container: #d6e2ee;
+  --theme-color-drawer-selected: #374754;
+}
+
+[data-theme='dark'][data-palette='navy'] {
+  --md-sys-color-primary: #a8c8ff;
+  --md-sys-color-on-primary: #00315e;
+  --md-sys-color-primary-container: #1b3b6f;
+  --md-sys-color-on-primary-container: #d4e3ff;
+  --theme-color-drawer-selected: #1b3b6f;
+}
+
+[data-theme='dark'][data-palette='indigo'] {
+  --md-sys-color-primary: #bec2ff;
+  --md-sys-color-on-primary: #141e9e;
+  --md-sys-color-primary-container: #333bcb;
+  --md-sys-color-on-primary-container: #e0e0ff;
+  --theme-color-drawer-selected: #333bcb;
+}
+
+[data-theme='dark'][data-palette='lime'] {
+  --md-sys-color-primary: #aed65f;
+  --md-sys-color-on-primary: #253500;
+  --md-sys-color-primary-container: #354d00;
+  --md-sys-color-on-primary-container: #c9f27f;
+  --theme-color-drawer-selected: #354d00;
+}
+
+[data-theme='dark'][data-palette='crimson'] {
+  --md-sys-color-primary: #ffb4ab;
+  --md-sys-color-on-primary: #5f0b06;
+  --md-sys-color-primary-container: #7c1d18;
+  --md-sys-color-on-primary-container: #ffdad6;
+  --theme-color-drawer-selected: #7c1d18;
+}
+
+/*
+ * Preview values for the palette swatches in the appearance dialog. Each swatch has to
+ * show a palette that is not applied yet, so it cannot read the live custom properties.
+ */
+:root {
+  --palette-start-orange: #bf360c;
+  --palette-end-orange: #7e2202;
+  --palette-start-green: #14532d;
+  --palette-end-green: #0b3b1e;
+  --palette-start-blue: #0d47a1;
+  --palette-end-blue: #082f66;
+  --palette-start-purple: #3f0f5e;
+  --palette-end-purple: #27093b;
+  /* The eight later palettes. The picker builds each swatch from
+     var(--palette-end-NAME)/var(--palette-start-NAME), so a palette missing here shows
+     as an empty gradient box rather than a wrong colour — easy to miss, since the
+     surrounding swatch still looks fine. */
+  --palette-start-rose: #7b1f3a;
+  --palette-end-rose: #4f1124;
+  --palette-start-teal: #0b4f49;
+  --palette-end-teal: #06332f;
+  --palette-start-amber: #6b4a12;
+  --palette-end-amber: #44300a;
+  --palette-start-slate: #37424c;
+  --palette-end-slate: #232b33;
+  --palette-start-navy: #0d2340;
+  --palette-end-navy: #081629;
+  --palette-start-indigo: #2c3080;
+  --palette-end-indigo: #1b1e56;
+  --palette-start-lime: #2f5000;
+  --palette-end-lime: #1d3300;
+  --palette-start-crimson: #6b1611;
+  --palette-end-crimson: #450d0a;
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+  background: var(--md-sys-color-surface);
+  color: var(--md-sys-color-on-surface);
+  font-family: var(--font-sans);
+  overscroll-behavior: none;
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/*
+ * The gradient lives on the root element, which always paints the whole viewport. The
+ * body box is not full width — the renderer centres the canvas by setting position/inset/
+ * margin on the element itself — so a body background would only cover part of the screen,
+ * and an opaque shell layer would paint over the canvas.
+ */
+html {
+  /*
+   * The board's own colour, not the palette's select background.
+   *
+   * --theme-game-select-background is the launcher's *selected state* colour.
+   * Under the monochrome theme it resolves to the accent, which is white on a
+   * dark theme, so the page behind a black board came up white and the game sat
+   * as a black rectangle on a white sheet. The canvas paints #000 and never
+   * changes, so the backdrop is that, and the board stops being an object on a
+   * page and becomes the page.
+   */
+  background: #000;
+}
+
+body {
+  background: transparent;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+#canvas {
+  display: block;
+  border-radius: 18px;
+  /* The board now sits on its own colour, so the white inset ring that used to
+     pick it out against a light page has nothing to do and only draws a frame
+     around the game. A soft outer shadow is all that is left worth having. */
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+}
+
+/*
+ * Hide the canvas until the game has sized it.
+ *
+ * A <canvas> with no width/height attribute is 300x150. Until the game initialises,
+ * that default sits at the top-left of the page — and because of the border-radius and
+ * shadow above it did not read as an unstyled placeholder but as a small rounded panel
+ * flashing in the corner of an otherwise empty screen for about half a second on every
+ * visit. js/renderer.js adds `canvas-ready` itself, as soon as it has set the real
+ * dimensions; nothing in this file watches for it.
+ */
+#canvas:not(.canvas-ready) {
+  visibility: hidden;
+}
+
+/* ------------------------------------------------------------- pause + hint */
+
+/*
+   Pause control. Always available: many desktops have no End key, and Mac laptops
+   especially leave a player with no way to pause without this button.
+
+   Top-right, out of the way of a thumb that is busy swiping, inside the safe-area
+   insets so it clears a notch or a home indicator.
+ */
+.shell-pause {
+  display: flex;
+  position: absolute;
+  top: max(10px, env(safe-area-inset-top));
+  right: max(10px, env(safe-area-inset-right));
+  width: 52px;
+  height: 52px;
+  align-items: center;
+  justify-content: center;
+  font: 700 13px var(--font-sans);
+  letter-spacing: 1px;
+  color: var(--md-sys-color-on-surface);
+  background: color-mix(in srgb, var(--md-sys-color-surface-container) 82%, transparent);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: 50%;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  cursor: pointer;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  transition: background 90ms ease, transform 90ms ease;
+}
+
+.shell-pause:active {
+  background: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary);
+  transform: scale(0.94);
+}
+
+/*
+   Fire control. Space on a keyboard; this button on a touchscreen.
+
+   Same chrome as pause: glass at rest, primary only while pressed — the mono accent
+   is the opposite of the background and marks the primary action, not a permanent
+   fill. Slightly larger than pause so the word fits; still the same family.
+
+   Sits up and in from the corner so a resting thumb finds it without covering the
+   maze edge. `data-fire-hand` on <html> mirrors it for left-hand play.
+ */
+.shell-fire {
+  display: none;
+  position: absolute;
+  bottom: max(72px, calc(env(safe-area-inset-bottom) + 56px));
+  right: max(28px, calc(env(safe-area-inset-right) + 24px));
+  left: auto;
+  width: 64px;
+  height: 64px;
+  align-items: center;
+  justify-content: center;
+  font: 700 12px var(--font-sans);
+  letter-spacing: 1px;
+  color: var(--md-sys-color-on-surface);
+  background: color-mix(in srgb, var(--md-sys-color-surface-container) 82%, transparent);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: 50%;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  cursor: pointer;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  transition: background 90ms ease, color 90ms ease, transform 90ms ease, left 120ms ease, right 120ms ease;
+}
+
+html[data-fire-hand="left"] .shell-fire {
+  left: max(28px, calc(env(safe-area-inset-left) + 24px));
+  right: auto;
+}
+
+.shell-fire:active {
+  background: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary);
+  transform: scale(0.94);
+}
+
+/*
+   Left / Right for the fire button. Top-left, opposite the pause control, so a
+   handedness change does not sit in the same thumb zone as FIRE itself.
+ */
+.shell-hand {
+  display: none;
+  position: absolute;
+  top: max(10px, env(safe-area-inset-top));
+  left: max(10px, env(safe-area-inset-left));
+  gap: 4px;
+  padding: 3px;
+  background: color-mix(in srgb, var(--md-sys-color-surface-container) 82%, transparent);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: 999px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.shell-hand-btn {
+  min-width: 52px;
+  height: 36px;
+  padding: 0 12px;
+  font: 700 11px var(--font-sans);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--md-sys-color-on-surface);
+  background: transparent;
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.shell-hand-btn[aria-pressed="true"] {
+  background: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary);
+}
+
+/*
+   The hint names the controls this device has, and the two wordings are switched by the
+   same media query that reveals the fire button. A chip that says "arrows" on a phone
+   is telling the player to press something they do not have, so the touch wording is the
+   default-off one and CSS turns it on.
+ */
+.hint-touch { display: none; }
+
+@media (pointer: coarse), (hover: none) {
+  .hint-keys { display: none; }
+  .hint-touch { display: inline; }
+  .shell-fire { display: flex; }
+  .shell-hand { display: flex; }
+  /* Keep the hint clear of the fire button's thumb zone. */
+  .shell-bottom {
+    padding-right: calc(64px + max(28px, calc(env(safe-area-inset-right) + 24px)) + 12px);
+    padding-left: 0;
+    padding-bottom: 8px;
+  }
+  html[data-fire-hand="left"] .shell-bottom {
+    padding-left: calc(64px + max(28px, calc(env(safe-area-inset-left) + 24px)) + 12px);
+    padding-right: 0;
+  }
+}
+
+/*
+ * The bottom stack — currently just the hint chip.
+ *
+ * `margin-top: auto` pins it to the foot of .shell. It used to sit on .shell-hint
+ * directly, which no longer reaches the edge now that the chip is wrapped: the auto
+ * margin resolves against .shell-bottom's own flex context instead, and the two would
+ * separate. Put it on the wrapper, where it means "bottom of the screen" again.
+ */
+.shell-bottom {
+  margin-top: auto;
+}
+
+/* ----------------------------------------------------------------- shell chrome */
+
+.shell {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  /* The layer itself never eats input: only its controls do. */
+  pointer-events: none;
+  z-index: 10;
+}
+
+.shell > * {
+  pointer-events: auto;
+}
+
+.shell-hint {
+  /*
+   * The bottom offset. `margin-top: auto` used to live here to push the chip to the
+   * foot of .shell, but that no longer holds: the chip is nested inside .shell-bottom,
+   * so the auto margin now resolves inside that wrapper instead of pushing the chip
+   * against a screen edge. .shell-bottom carries the auto margin now.
+   */
+  margin-bottom: calc(8px + env(safe-area-inset-bottom));
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.shell.is-idle .shell-hint {
+  opacity: 0;
+  transform: translateY(120%);
+  pointer-events: none;
+}
+
+@media (max-width: 560px) {
+  .shell-hint {
+    display: none;
+  }
+}
+
+/* score_chip_background.xml — 16dp radius, 6dp elevation */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  max-height: 100%;
+  padding: 4px 12px;
+  border: var(--score-chip-border);
+  border-radius: var(--score-chip-radius);
+  background: var(--score-chip-surface);
+  box-shadow: var(--score-chip-shadow);
+  color: var(--ui-text-color, var(--menu-bar-label));
+  font: var(--type-menu-label);
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  line-height: normal;
+}
+
+/*
+ * ── Rules moved out of index.html ───────────────────────────────────────
+ * The document's CSP is `style-src 'self'`, which forbids an inline <style>
+ * block. These three rules used to live in one; they are byte-for-byte the same
+ * declarations, just relocated.
+ */
+
+/*
+ * ── The app's own typefaces ────────────────────────────────────────────
+ * The same three weights of Sora and DM Sans the launcher and the other four games use,
+ * declared here rather than imported because a game frame loads its own stylesheet and
+ * not the app's. The arcade face this file used to carry is gone: it was a pixel font
+ * being scaled by an integer factor to stay crisp, and it read as a different app.
+ */
+@font-face {
+  font-family: 'DM Sans';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('assets/fonts/dm-sans-latin-400-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'DM Sans';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('assets/fonts/dm-sans-latin-600-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'DM Sans';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('assets/fonts/dm-sans-latin-700-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Sora';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('assets/fonts/sora-latin-600-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Sora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('assets/fonts/sora-latin-700-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Sora';
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: url('assets/fonts/sora-latin-800-normal.woff2') format('woff2');
+}
+
+/*
+ * The shared type stack. This game loads its own copy of theme.css rather than the
+ * app-level one, so the tokens are declared here as well as beside the @font-face rules
+ * above — they must stay identical to the definitions in the app root, which are the
+ * canonical ones.
+ */
+:root {
+  --font-sans: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    'Noto Sans', 'Liberation Sans', Arial, sans-serif;
+  --font-display: 'Sora', 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI',
+    Roboto, sans-serif;
+}
+
+#canvas-warning {
+  color: #FF0;
+  font-size: 1.5em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shell-hint {
+    transition: none;
+  }
+}

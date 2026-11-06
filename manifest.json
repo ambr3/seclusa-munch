@@ -1,0 +1,28 @@
+{
+    "name": "Seclusa Munch",
+    "short_name": "Munch",
+    "description": "Eat the maze. Keep clear of the four.",
+    "id": "./manifest.json",
+    "start_url": "./",
+    "scope": "./",
+    "display": "standalone",
+    "background_color": "#0d2340",
+    "theme_color": "#0d2340",
+    "lang": "en",
+    "dir": "ltr",
+    "icons": [
+        {
+            "src": "icon/icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "icon/icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any"
+        }
+    ],
+    "version": "0.1.0"
+}

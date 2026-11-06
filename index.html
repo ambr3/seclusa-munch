@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en" data-palette="navy" data-theme="light" data-mono data-warm>
+
+<head>
+    <meta charset="utf-8">
+
+    <!--
+        The launcher frames this game. This document frames nothing, so frame-src
+        is 'none'. Leaving the directive off would fall through to default-src
+        'self' and allow a same-origin frame. `frame-ancestors` is absent: browsers
+        ignore it in a <meta> tag. The local server sends X-Frame-Options:
+        SAMEORIGIN for this game, not frame-ancestors. GitHub Pages sends neither.
+
+        `connect-src 'none'` is what makes the README's "no network requests" claim
+        enforceable here rather than merely stated.
+    -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; font-src 'self'; media-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'; manifest-src 'self'; worker-src 'self'; upgrade-insecure-requests">
+
+    <title>Seclusa Munch</title>
+        <!-- Lock viewport on mobile devices. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+
+    <meta name="description" content="Seclusa Munch — eat the maze, keep clear of the four." />
+    <meta name="color-scheme" content="light dark" />
+    <!--
+        Permissions-Policy. Every other served document in the app carries this; this game
+        was the one that did not. The game asks for no device capability at all, so the
+        whole surface is denied rather than left to the browser default.
+    -->
+    <meta http-equiv="Permissions-Policy"
+        content="camera=(), microphone=(), geolocation=(), payment=(), clipboard-read=(), usb=(), midi=(), serial=(), display-capture=(), accelerometer=(), gyroscope=(), magnetometer=(), idle-detection=(), screen-wake-lock=(), browsing-topics=(), interest-cohort=()">
+    <meta name="referrer" content="no-referrer">
+    <meta name="theme-color" content="#0d2340">
+
+    <!-- Allow page to be saved as web app on iOS. -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+
+    <!-- Hide status bar -->
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+    <!-- icon used for iOS Web App -->
+    <link rel="apple-touch-icon-precomposed" href="icon/ios_icon.png"/>
+
+    <link rel="icon" type="image/png" href="icon/favicon.png"/>
+
+    <!--
+        Before the stylesheets, and synchronous on purpose. This game's own theme.js runs
+        after the canvas markup, so without this the frame paints with the document's
+        data-theme="light" and then corrects itself — a white flash on a dark-mode device,
+        at the edges of the frame, while the launcher around it is already dark. Same file
+        and same reason as the launcher's; see theme-boot.js.
+    -->
+    <script src="theme-boot.js"></script>
+
+    <link rel="stylesheet" href="seclusa-base.css" />
+    <link rel="stylesheet" href="mono.css" />
+    <link rel="stylesheet" href="theme.css" />
+
+    <!--
+        The page shell: theme attributes, the sound preference, the menu-peek idle state,
+        the canvas reveal, and the pause button. Loaded as a classic script so it runs
+        before the deferred module below, which is what lets the button dispatch a key
+        into a game that is already listening.
+    -->
+    <script src="theme.js"></script>
+
+    <!--
+        CSP is `style-src 'self'`, so nothing inline is permitted: the @font-face and
+        #canvas-warning rules live in theme.css.
+
+        The game is plain ES modules loaded straight from disk — no bundle, no build step.
+        Every file under js/ is one concern (the maze data, the ghost rules, the renderer),
+        and the browser loads them in dependency order itself.
+    -->
+    <script type="module" src="js/main.js"></script>
+
+    <meta name="version" content="0.1.0">
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="stand.css">
+</head>
+
+<body>
+
+    <!-- Page shell: header bar, hint chip and dialogs. The game canvas below is
+         centered by the renderer, so the shell stays out of the document flow. -->
+    <div class="shell" data-ui-chrome>
+        <!--
+            The in-game header bar (title, Sound, Fullscreen, Theme) used to live here and
+            has been removed: the launcher's stage bar carries those controls, and names
+            the game, so this was a second differently-styled copy of both. The hint chip
+            stays — it is guidance for the game you are actually playing, not a control.
+        -->
+        <div class="shell-bottom">
+            <div class="shell-hint chip">
+                <!--
+                    Two wordings, one per kind of device, switched by CSS on the same
+                    `pointer: coarse` question that reveals the pause button. A hint that
+                    says "arrows" on a phone is telling the player to press something
+                    they do not have.
+                -->
+                <span class="hint-keys">any key starts &middot; arrows steer &middot; space fires &middot; end pause</span>
+                <span class="hint-touch">tap to start &middot; swipe to steer &middot; fire to shoot &middot; pause to pause</span>
+            </div>
+        </div>
+
+        <!--
+            Pause, for devices with no End key.
+
+            Steering is swipe-only on touch: a pad was worse than one gesture. Fire is
+            the exception — Space has no thumb equivalent once a swipe is steering, and
+            a tap both fires and clears the held direction, which fights a held swipe.
+            The fire button only shoots. L/R picks which thumb side it sits on.
+        -->
+        <div class="shell-hand" role="group" aria-label="Fire button side">
+            <button class="shell-hand-btn" id="fireHandLeft" type="button" aria-pressed="false">Left</button>
+            <button class="shell-hand-btn" id="fireHandRight" type="button" aria-pressed="true">Right</button>
+        </div>
+        <button class="shell-pause" id="pauseBtn" type="button" aria-label="Pause">&#10073;&#10073;</button>
+        <button class="shell-fire" id="fireBtn" type="button" aria-label="Fire">FIRE</button>
+    </div>
+
+    <canvas id='canvas'><div id="canvas-warning">Your browser does not support HTML Canvas.  Please upgrade!</div></canvas>
+
+    <script src="stand-help.js"></script>
+    <script src="stand.js"></script>
+</body>
+
+</html>
